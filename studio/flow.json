@@ -1,0 +1,331 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "next": "fetch_segment",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "send_to_flex_1",
+      "type": "send-to-flex",
+      "transitions": [
+        {
+          "event": "callComplete"
+        },
+        {
+          "event": "failedToEnqueue"
+        },
+        {
+          "event": "callFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 240,
+          "y": 530
+        },
+        "workflow": "WW93afabb5b071578094989453eb40b476",
+        "channel": "TCaf1b530a445b8a65bbc61e8b33840376"
+      }
+    },
+    {
+      "name": "fetch_segment",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "Greet",
+          "event": "success"
+        },
+        {
+          "next": "send_to_flex_1",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 180,
+          "y": 250
+        },
+        "method": "GET",
+        "content_type": "application/x-www-form-urlencoded;charset=utf-8",
+        "body": "",
+        "parameters": [
+          {
+            "value": "{{trigger.call.From}}",
+            "key": "phoneNumber"
+          }
+        ],
+        "url": "https://segmentivr-XXXX-dev.twil.io/segment/fetchData"
+      }
+    },
+    {
+      "name": "Greet",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "event": "keypress"
+        },
+        {
+          "next": "known_issue",
+          "event": "speech"
+        },
+        {
+          "next": "Department_general",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Salli",
+        "speech_timeout": "auto",
+        "offset": {
+          "x": -130,
+          "y": 470
+        },
+        "loop": 1,
+        "hints": "yes,no",
+        "finish_on_key": "#",
+        "say": "Hello {{widgets.fetch_segment.parsed.name}}! Are you calling because {{widgets.fetch_segment.parsed.last_error}}?",
+        "language": "en-US",
+        "stop_gather": true,
+        "gather_language": "en-US",
+        "profanity_filter": "true",
+        "timeout": 5
+      }
+    },
+    {
+      "name": "known_issue",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "Department_general",
+          "event": "noMatch"
+        },
+        {
+          "next": "Department_specific",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value contains yes",
+              "arguments": ["{{widgets.Greet.SpeechResult}}"],
+              "type": "contains",
+              "value": "yes"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.Greet.SpeechResult}}",
+        "offset": {
+          "x": -190,
+          "y": 730
+        }
+      }
+    },
+    {
+      "name": "Announce_department",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "prio_severity",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Salli",
+        "offset": {
+          "x": -250,
+          "y": 1290
+        },
+        "loop": 1,
+        "say": "We will connect you to our {{flow.variables.department}} team.",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "Department_specific",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "Announce_department",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{{widgets.fetch_segment.parsed.last_error_department}}",
+            "key": "department"
+          }
+        ],
+        "offset": {
+          "x": 20,
+          "y": 980
+        }
+      }
+    },
+    {
+      "name": "Department_general",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "Announce_department",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "general",
+            "key": "department"
+          }
+        ],
+        "offset": {
+          "x": -380,
+          "y": 990
+        }
+      }
+    },
+    {
+      "name": "prio_severity",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "priority_low",
+          "event": "noMatch"
+        },
+        {
+          "next": "priority_high",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Had bad experience",
+              "arguments": [
+                "{{widgets.fetch_segment.parsed. bad_experience_last_7_days}}"
+              ],
+              "type": "equal_to",
+              "value": "true"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.fetch_segment.parsed. bad_experience_last_7_days}}",
+        "offset": {
+          "x": -230,
+          "y": 1510
+        }
+      }
+    },
+    {
+      "name": "Copy_of_send_to_flex_1",
+      "type": "send-to-flex",
+      "transitions": [
+        {
+          "event": "callComplete"
+        },
+        {
+          "event": "failedToEnqueue"
+        },
+        {
+          "event": "callFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -380,
+          "y": 2230
+        },
+        "workflow": "WW93afabb5b071578094989453eb40b476",
+        "channel": "TCaf1b530a445b8a65bbc61e8b33840376",
+        "attributes": "{\"department\":\"{{flow.variables.department}}\"}",
+        "priority": "{{flow.variables.prio}}"
+      }
+    },
+    {
+      "name": "Announce_prio",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "Copy_of_send_to_flex_1",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Salli",
+        "offset": {
+          "x": -50,
+          "y": 2010
+        },
+        "loop": 1,
+        "say": "We will prioritize your call, so you can get help as quickly as possible.",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "priority_high",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "Announce_prio",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "10",
+            "key": "prio"
+          }
+        ],
+        "offset": {
+          "x": -60,
+          "y": 1760
+        }
+      }
+    },
+    {
+      "name": "priority_low",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "Copy_of_send_to_flex_1",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "0",
+            "key": "prio"
+          }
+        ],
+        "offset": {
+          "x": -400,
+          "y": 1760
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
