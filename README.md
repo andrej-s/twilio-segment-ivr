@@ -1,6 +1,6 @@
 # Integrating the Twilio IVR and Segment
 
-This repository is part of a blog post to demonstrate how to integrate [Twilio Flex](https://www.twilio.com/docs/flex) and [Segment](https://www.segment.com). It gives an overview how to implement personas, audiences, and routing based on customer data.
+This repository is part of a [blog post](https://www.twilio.com/blog/personalize-ivr-segment-flex) to demonstrate how to integrate [Twilio Flex](https://www.twilio.com/docs/flex) and [Segment](https://www.segment.com). It gives an overview how to implement personas, audiences, and routing based on customer data.
 
 ## Setup
 
